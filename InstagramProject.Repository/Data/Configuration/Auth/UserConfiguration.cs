@@ -2,11 +2,6 @@
 using InstagramProject.Core.Entities.Auth;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace InstagramProject.Repository.Data.Configuration.Auth
 {
@@ -21,14 +16,6 @@ namespace InstagramProject.Repository.Data.Configuration.Auth
                 .HasForeignKey("UserId");
 
             builder.Property(x => x.FullName).HasMaxLength(100);
-
-            //builder.Property(n => n.IsEnableNotificationFollowing)
-            //    .HasDefaultValue(true);
-
-            //builder.Property(n => n.IsEnableNotificationNewRelease)
-            //    .HasDefaultValue(true);
-
-          
 
             //Default Data
             builder.HasData(new ApplicationUser
@@ -45,8 +32,6 @@ namespace InstagramProject.Repository.Data.Configuration.Auth
                 EmailConfirmed = true,
                 PasswordHash = "AQAAAAIAAYagAAAAEAR2V+bcDJAlzUiuTRqKkLj/Uv4ibKCWikvvMF1g75/iOokLhV1l9SedoJOqspT0mA=="
             });
-
-
         }
     }
 }
