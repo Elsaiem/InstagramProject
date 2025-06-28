@@ -1,4 +1,5 @@
-﻿using InstagramProject.Core.Entities.Auth;
+﻿using InstagramProject.Core.Entities;
+using InstagramProject.Core.Entities.Auth;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -19,6 +20,12 @@ namespace InstagramProject.Repository.Data.Contexts
         {
             _httpContextAccessor = httpContextAccessor;
         }
+        public DbSet<UserFollow> UserFollows { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
+        public DbSet<UserSavedPost>  userSavedPosts { get; set; }
+        public DbSet<Comment>  comments { get; set; }
+        public DbSet<Reaction>   reactions { get; set; }
+        public DbSet<Post>   posts { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
