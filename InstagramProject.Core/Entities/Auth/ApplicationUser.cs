@@ -13,9 +13,19 @@ namespace InstagramProject.Core.Entities.Auth
         public string? Bio { get; set; } = string.Empty;
         public string? ProfilePic { get; set; }
         public DateOnly BirthDay { get; set; }
+        
         public DateOnly? JoinedOn { get; set; }
-		public bool IsDisabled { get; set; }
+
+        public bool IsEnableFollowerAndFollowing { get; set; }
+        public bool IsEnableNotificationFollowing { get; set; }
+        public bool IsEnableNotificationNewRelease { get; set; }
+
+        public bool IsDisabled { get; set; }
 		public List<RefreshToken> RefreshTokens { get; set; } = [];
-        //public ICollection<Notification> Notifications { get; set; } = new HashSet<Notification>();
+
+        public ICollection<UserFollow> Following { get; set; } = new HashSet<UserFollow>();
+        public ICollection<UserFollow> Followers { get; set; } = new HashSet<UserFollow>();
+        public ICollection<UserSavedPost> Saved { get; set; } = new HashSet<UserSavedPost>();
+        public ICollection<Notification> Notifications { get; set; } = new HashSet<Notification>();
     }
 }
