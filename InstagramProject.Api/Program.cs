@@ -2,6 +2,9 @@
 using InstagramProject.Core;
 using InstagramProject.Repository.Data.Contexts;
 using InstagramProject.Repository;
+using Hangfire;
+using HangfireBasicAuthenticationFilter;
+using InstagramProject.Service;
 
 namespace InstagramProject.Api
 {
