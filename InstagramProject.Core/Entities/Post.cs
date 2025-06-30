@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Intrinsics.Arm;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -17,6 +18,7 @@ namespace InstagramProject.Core.Entities
 		public string UserId { get; set; } = default!;
 		public bool IsReported { get; set; }
 		public ICollection<Reaction> Reactions = new List<Reaction>();
+		public ICollection<UserSavedPost> Saved = new List<UserSavedPost>();
 		public ICollection<Comment> Comments = new List<Comment>();
 	}
 }
