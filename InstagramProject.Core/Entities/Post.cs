@@ -14,7 +14,7 @@ namespace InstagramProject.Core.Entities
 		public DateTime Time { get; set; } = DateTime.UtcNow;
 		public string? Content { get; set; } = default!;
 		public ApplicationUser User { get; set; } = default!;
-		public string? Image { get; set; } = default!;
+		public string? PostMedia { get; set; } = default!;
 		public string UserId { get; set; } = default!;
 		public ICollection<Reaction> Reactions = new List<Reaction>();
 		public ICollection<UserSavedPost> Saved = new List<UserSavedPost>();

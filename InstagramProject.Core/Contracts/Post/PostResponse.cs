@@ -10,6 +10,6 @@ namespace InstagramProject.Core.Contracts.Post
 	(
 		string UserId,
 		string? Content,
-		IEnumerable<PostImages> Images
+		IEnumerable<PostMedia> Media
 	);
 }
