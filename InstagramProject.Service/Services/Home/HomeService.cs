@@ -49,7 +49,7 @@ namespace InstagramProject.Service.Services.Home
 					return new FeedResponse(
 						userId: firstPost.UserId,
 						userName: firstPost.User.UserName,
-						posts: group.Select(p => new FeedPostResponse(p.Image ?? string.Empty)),
+						posts: group.Select(p => new FeedPostResponse(p.PostMedia ?? string.Empty)),
 						Likes: group.Sum(p => p.Reactions.Count(r => r.IsReaction)),
 						Comments: group.Sum(p => p.Comments.Count)
 					);
@@ -57,6 +57,27 @@ namespace InstagramProject.Service.Services.Home
 				.ToList();
 
 			return Result.Success<IEnumerable<FeedResponse>>(feedResponses);
+		}
+		public async Task<Result<IEnumerable<SearchResponse>>> SearchForUserAdync(SearchRequest request, CancellationToken cancellationToken)
+		{
+			if (string.IsNullOrWhiteSpace(request.SearchValue))
+				return Result.Success<IEnumerable<SearchResponse>>(new List<SearchResponse>());
+
+			var searchTerm = request.SearchValue.Trim().ToLower();
+			var normalizedSearchTerm = searchTerm.Replace(" ", "");
+
+			var userResults = await _context.Users
+				.Where(u => !u.IsDisabled &&
+					(u.UserName.ToLower().Contains(searchTerm) || u.UserName.ToLower().Replace(" ", "").Contains(normalizedSearchTerm)))
+				.Take(50)
+				.Select(u => new SearchResponse(
+					u.Id,
+					u.UserName!,
+					u.ProfilePic ?? string.Empty
+				))
+				.AsNoTracking()
+				.ToListAsync(cancellationToken);
+			return Result.Success<IEnumerable<SearchResponse>>(userResults);
 		}
 	}
 }
