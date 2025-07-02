@@ -1,6 +1,4 @@
 ﻿using InstagramProject.Core.Abstractions;
-using InstagramProject.Core.Abstractions.Consts;
-using InstagramProject.Core.Contracts.Files;
 using InstagramProject.Core.Contracts.Post;
 using InstagramProject.Core.Entities.Auth;
 using InstagramProject.Core.Errors.Post;
