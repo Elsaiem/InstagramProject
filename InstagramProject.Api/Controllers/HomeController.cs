@@ -1,0 +1,33 @@
+﻿using InstagramProject.Core.Abstractions;
+using InstagramProject.Core.Contracts.Home;
+using InstagramProject.Core.Extensions;
+using InstagramProject.Core.Service_contract;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace InstagramProject.Api.Controllers
+{
+	[Route("api/[controller]")]
+	[ApiController]
+	[Authorize]
+	public class HomeController : ControllerBase
+	{
+		private readonly IHomeService _homeService;
+		public HomeController(IHomeService homeService)
+		{
+			_homeService = homeService;
+		}
+		[HttpPost("")]
+		public async Task<IActionResult> GetUserFeed(CancellationToken cancellationToken)
+		{
+			var response = await _homeService.UserFeedAsync(User.GetUserId()!, cancellationToken);
+			return response.IsSuccess ? Ok(response.Value) : response.ToProblem();
+		}
+		[HttpGet("search")]
+		public async Task<IActionResult> SearchForUser([FromQuery] SearchRequest request, CancellationToken cancellationToken)
+		{
+			var response = await _homeService.SearchForUserAdync(request, cancellationToken);
+			return response.IsSuccess ? Ok(response.Value) : response.ToProblem();
+		}
+	}
+}
