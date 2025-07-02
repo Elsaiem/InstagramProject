@@ -1,7 +1,11 @@
 ﻿using Hangfire;
+using InstagramProject.Core.Helpers;
 using InstagramProject.Core.Service_contract;
 using InstagramProject.Service.Services.Authentication;
 using InstagramProject.Service.Services.EmailService;
+using InstagramProject.Service.Services.Files;
+using InstagramProject.Service.Services.Home;
+using InstagramProject.Service.Services.Post;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,6 +23,11 @@ namespace InstagramProject.Service
 		{
 			services.AddScoped<IAuthService, AuthService>();
 			services.AddScoped<IEmailSender, EmailService>();
+			services.AddScoped<IHomeService, HomeService>();
+			services.AddScoped<IFileService, CloudinaryService>();
+			services.AddScoped<IPostService, PostService>();
+			services.Configure<CloudinarySettings>(configuration.GetSection(CloudinarySettings.SectionName));
+			
 			services.AddBackgroundJobsConfig(configuration);
 			return services;
 		}
