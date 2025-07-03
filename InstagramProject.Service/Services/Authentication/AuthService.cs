@@ -4,6 +4,7 @@ using InstagramProject.Core.Abstractions.Consts;
 using InstagramProject.Core.Authentication_Contract;
 using InstagramProject.Core.Contracts.Authentication;
 using InstagramProject.Core.Entities.Auth;
+using InstagramProject.Core.Errors.Authentication;
 using InstagramProject.Core.Helpers;
 using InstagramProject.Core.Service_contract;
 using Mapster;
@@ -15,7 +16,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Security.Cryptography;
 using System.Text;
-using static InstagramProject.Core.Errors.Authentication.AuthenticationError;
 
 namespace InstagramProject.Service.Services.Authentication
 {
