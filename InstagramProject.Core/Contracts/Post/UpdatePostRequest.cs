@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace InstagramProject.Core.Contracts.Post
 {
-	public record PostResponse
+	public record UpdatePostRequest
 	(
 		int PostId,
 		string UserId,
 		string? Content,
-		IEnumerable<PostMedia> Media
+		IEnumerable<string>? Media
 	);
 }

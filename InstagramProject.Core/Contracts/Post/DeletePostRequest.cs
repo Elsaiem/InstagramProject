@@ -6,11 +6,9 @@ using System.Threading.Tasks;
 
 namespace InstagramProject.Core.Contracts.Post
 {
-	public record PostResponse
+	public record DeletePostRequest
 	(
 		int PostId,
-		string UserId,
-		string? Content,
-		IEnumerable<PostMedia> Media
+		string UserId
 	);
 }
