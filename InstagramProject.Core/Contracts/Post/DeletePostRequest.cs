@@ -4,12 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace InstagramProject.Core.Contracts.Home
+namespace InstagramProject.Core.Contracts.Post
 {
-	public record SearchResponse
+	public record DeletePostRequest
 	(
-		string UserId,
-		string UserName,
-		string Image
+		int PostId,
+		string UserId
 	);
 }

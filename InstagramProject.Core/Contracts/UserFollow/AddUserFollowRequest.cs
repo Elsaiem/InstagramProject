@@ -4,12 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace InstagramProject.Core.Contracts.Home
+namespace InstagramProject.Core.Contracts.UserFollow
 {
-	public record SearchResponse
+	public record AddUserFollowRequest
 	(
-		string UserId,
-		string UserName,
-		string Image
+		string FollowedUserId
 	);
 }

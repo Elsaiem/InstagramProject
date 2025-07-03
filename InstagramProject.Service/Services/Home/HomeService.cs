@@ -5,7 +5,6 @@ using InstagramProject.Core.Abstractions;
 using InstagramProject.Repository.Data.Contexts;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using static InstagramProject.Core.Errors.Authentication.AuthenticationError;
 using InstagramProject.Core.Service_contract;
 
 namespace InstagramProject.Service.Services.Home
@@ -47,8 +46,10 @@ namespace InstagramProject.Service.Services.Home
 				{
 					var firstPost = group.First();
 					return new FeedResponse(
+						PostId: firstPost.Id,
 						userId: firstPost.UserId,
 						userName: firstPost.User.UserName,
+						Time: firstPost.Time,
 						posts: group.Select(p => new FeedPostResponse(p.PostMedia ?? string.Empty)),
 						Likes: group.Sum(p => p.Reactions.Count(r => r.IsReaction)),
 						Comments: group.Sum(p => p.Comments.Count)

@@ -6,6 +6,7 @@ using InstagramProject.Service.Services.EmailService;
 using InstagramProject.Service.Services.Files;
 using InstagramProject.Service.Services.Home;
 using InstagramProject.Service.Services.Post;
+using InstagramProject.Service.Services.Profile;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,6 +27,7 @@ namespace InstagramProject.Service
 			services.AddScoped<IHomeService, HomeService>();
 			services.AddScoped<IFileService, CloudinaryService>();
 			services.AddScoped<IPostService, PostService>();
+			services.AddScoped<IProfileService, ProfileService>();
 			services.Configure<CloudinarySettings>(configuration.GetSection(CloudinarySettings.SectionName));
 			
 			services.AddBackgroundJobsConfig(configuration);

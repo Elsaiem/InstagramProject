@@ -4,12 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace InstagramProject.Core.Contracts.Home
+namespace InstagramProject.Core.Contracts.Comment
 {
-	public record SearchResponse
+	public record CommentPostResponse
 	(
 		string UserId,
 		string UserName,
-		string Image
+		string Content,
+		DateTime Time
 	);
 }

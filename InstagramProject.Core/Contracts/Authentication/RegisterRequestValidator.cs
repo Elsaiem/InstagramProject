@@ -14,23 +14,17 @@ namespace InstagramProject.Core.Contracts.Authentication
         {
             RuleFor(x => x.Email)
                 .NotEmpty()
-                .EmailAddress()
-                .Must(email => (!email.Contains("xss") && !email.Contains('<') && !email.Contains('>')))
-                .WithMessage("invalid xss request");
-
+                .EmailAddress();
 
             RuleFor(x => x.Password)
                 .NotEmpty()
-                .Must(password => (!password.Contains("xss") && !password.Contains('<') && !password.Contains('>')))
-                .WithMessage("invalid xss request")
                 .Matches(RegexPatterns.Password)
                 .WithMessage("Password should be at least 6 characters and should contain a lowercase, uppercase, number, and a special character.");
 
             RuleFor(x => x.FullName)
                 .NotEmpty()
                 .Length(3, 100)
-                .Must(fullname => (!fullname.Contains("xss") && !fullname.Contains('<') && !fullname.Contains('>')))
-                .WithMessage("invalid xss request");
+                .WithMessage("Full Name must be at least 3 characters and at most 100 characters");
 
 
             RuleFor(x => x.UserName)

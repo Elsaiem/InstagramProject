@@ -17,7 +17,7 @@ namespace InstagramProject.Api.Controllers
 		{
 			_homeService = homeService;
 		}
-		[HttpPost("")]
+		[HttpGet("")]
 		public async Task<IActionResult> GetUserFeed(CancellationToken cancellationToken)
 		{
 			var response = await _homeService.UserFeedAsync(User.GetUserId()!, cancellationToken);
