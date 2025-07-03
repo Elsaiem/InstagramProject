@@ -8,8 +8,8 @@ namespace InstagramProject.Core.Contracts.Home
 {
 	public record SearchResponse
 	(
-		string Id,
-		string Name,
+		string UserId,
+		string UserName,
 		string Image
 	);
 }
