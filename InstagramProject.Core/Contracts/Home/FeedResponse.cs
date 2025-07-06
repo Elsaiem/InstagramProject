@@ -8,8 +8,10 @@ namespace InstagramProject.Core.Contracts.Home
 {
 	public record FeedResponse
 	(
+		int PostId,
 		string userId,
 		string userName,
+		DateTime Time,
 		IEnumerable<FeedPostResponse> posts,
 		int Likes,
 		int Comments

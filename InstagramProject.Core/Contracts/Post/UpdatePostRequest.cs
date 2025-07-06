@@ -4,12 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace InstagramProject.Core.Contracts.Home
+namespace InstagramProject.Core.Contracts.Post
 {
-	public record SearchResponse
+	public record UpdatePostRequest
 	(
+		int PostId,
 		string UserId,
-		string UserName,
-		string Image
+		string? Content,
+		IEnumerable<string>? Media
 	);
 }

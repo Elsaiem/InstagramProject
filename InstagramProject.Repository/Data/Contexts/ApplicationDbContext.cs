@@ -21,11 +21,13 @@ namespace InstagramProject.Repository.Data.Contexts
             _httpContextAccessor = httpContextAccessor;
         }
         public DbSet<UserFollow> UserFollows { get; set; }
+        public DbSet<FollowRequest> FollowRequests { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<UserSavedPost>  userSavedPosts { get; set; }
         public DbSet<Comment>  comments { get; set; }
         public DbSet<Reaction>   reactions { get; set; }
         public DbSet<Post>   posts { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

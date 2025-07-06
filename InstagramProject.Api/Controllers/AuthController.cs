@@ -20,7 +20,6 @@ namespace InstagramProject.Api.Controllers
 			var response = await _authService.GetTokenAsync(request, cancellationToken);
 			return response.IsSuccess ? Ok(response.Value) : response.ToProblem();
 		}
-
 		[HttpPost("refresh-token")]
 		public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest request, CancellationToken cancellationToken)
 		{

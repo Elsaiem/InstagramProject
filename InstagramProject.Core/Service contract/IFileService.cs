@@ -8,9 +8,10 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace InstagramProject.Core.Service_contract
-{
+{    
     public interface IFileService
     {
         Task<Result<FileUploadResponse>> UploadToCloudinaryAsync(IFormFile file);
+        Task<Result> DeleteFromCloudinaryAsync(string publicId);
     }
 }

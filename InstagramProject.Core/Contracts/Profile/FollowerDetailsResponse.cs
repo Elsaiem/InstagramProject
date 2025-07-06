@@ -1,0 +1,16 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace InstagramProject.Core.Contracts.Profile
+{
+    public record FollowerDetailsResponse
+    (
+        string Id,
+        string FullName,
+        string? ProfilePic,
+        bool IsFollowing
+    );
+}
