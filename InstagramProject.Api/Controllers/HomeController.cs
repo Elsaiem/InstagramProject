@@ -1,4 +1,5 @@
 ﻿using InstagramProject.Core.Abstractions;
+using InstagramProject.Core.Contracts.Common;
 using InstagramProject.Core.Contracts.Home;
 using InstagramProject.Core.Extensions;
 using InstagramProject.Core.Service_contract;
@@ -17,12 +18,12 @@ namespace InstagramProject.Api.Controllers
 		{
 			_homeService = homeService;
 		}
-		[HttpGet("")]
-		public async Task<IActionResult> GetUserFeed(CancellationToken cancellationToken)
-		{
-			var response = await _homeService.UserFeedAsync(User.GetUserId()!, cancellationToken);
-			return response.IsSuccess ? Ok(response.Value) : response.ToProblem();
-		}
+	[HttpGet("")]
+	public async Task<IActionResult> GetUserFeed([FromQuery] RequestFilters request, CancellationToken cancellationToken = default)
+	{
+		var response = await _homeService.UserFeedAsync(User.GetUserId()!, request, cancellationToken);
+		return Ok(response);
+	}
 		[HttpGet("search")]
 		public async Task<IActionResult> SearchForUser([FromQuery] SearchRequest request, CancellationToken cancellationToken)
 		{
