@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using InstagramProject.Core.Abstractions.Consts;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,10 +17,8 @@ namespace InstagramProject.Core.Contracts.Authentication
                 .Must(userNameOrEmail => (!userNameOrEmail.Contains("xss") && !userNameOrEmail.Contains('<') && !userNameOrEmail.Contains('>')))
                 .WithMessage("invalid xss request");
 
-            RuleFor(x => x.Password)
-                .NotEmpty()
-                .Must(password => (!password.Contains("xss") && !password.Contains('<') && !password.Contains('>')))
-                .WithMessage("invalid xss request");
-        }
-    }
+			RuleFor(x => x.Password)
+				.NotEmpty();
+		}
+	}
 }

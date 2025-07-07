@@ -11,7 +11,7 @@ namespace InstagramProject.Core.Contracts.Authentication
     {
         public ConfirmEmailRequestValidator()
         {
-            RuleFor(x => x.UserId)
+            RuleFor(x => x.UserName)
                .NotEmpty();
 
             RuleFor(x => x.Code)

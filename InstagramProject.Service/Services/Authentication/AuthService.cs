@@ -144,6 +144,9 @@ namespace InstagramProject.Service.Services.Authentication
 			if (userNameIsExist)
 				return Result.Failure(UserErrors.DublicatedUserName);
 
+			if (request.BirthDay > DateOnly.FromDateTime(DateTime.Today))
+				return Result.Failure(UserErrors.InvalidBirthday);
+
 			var user = request.Adapt<ApplicationUser>();
 			var result = await _userManager.CreateAsync(user, request.Password);
 			if (result.Succeeded)
@@ -161,7 +164,7 @@ namespace InstagramProject.Service.Services.Authentication
 		}
 		public async Task<Result> ConfirmEmailAsync(ConfirmEmailRequest request)
 		{
-			var user = await _userManager.FindByIdAsync(request.UserId);
+			var user = await _userManager.FindByNameAsync(request.UserName);
 			if (user is null)
 				return Result.Failure(UserErrors.InvalidCode);
 
@@ -266,7 +269,7 @@ namespace InstagramProject.Service.Services.Authentication
 				new Dictionary<string, string>
 				{
 					{"{{name}}",user.UserName },
-					{ "{{action_url}}",$"{origin}/auth/emailConfirmation?userId={user.Id}&code={code}" }
+					{ "{{action_url}}",$"{origin}/auth/emailConfirmation?username={user.UserName}&code={code}" }
 				}
 			);
 			BackgroundJob.Enqueue(() => _emailSender.SendEmailAsync(user.Email!, "✅ Instagram: Confirm your email", emailBody));
