@@ -1,10 +1,11 @@
 
-using InstagramProject.Core;
-using InstagramProject.Repository.Data.Contexts;
-using InstagramProject.Repository;
 using Hangfire;
 using HangfireBasicAuthenticationFilter;
+using InstagramProject.Core;
+using InstagramProject.Repository;
+using InstagramProject.Repository.Data.Contexts;
 using InstagramProject.Service;
+using Serilog;
 
 namespace InstagramProject.Api
 {
@@ -19,14 +20,13 @@ namespace InstagramProject.Api
             builder.Services.AddCoreDependencyInjection(builder.Configuration);
             builder.Services.AddServicesDependencyInjection(builder.Configuration);
             builder.Services.AddSignalR();
+			builder.Host.UseSerilog((context, services, configuration) =>
+			{
+				configuration.ReadFrom.Configuration(context.Configuration);
+			});
 
             var app = builder.Build();
-
-            using var scope = app.Services.CreateAsyncScope();
-            var services = scope.ServiceProvider;
-            var context = services.GetRequiredService<ApplicationDbContext>();
            
-
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())

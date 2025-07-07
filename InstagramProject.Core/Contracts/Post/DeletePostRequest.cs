@@ -8,7 +8,6 @@ namespace InstagramProject.Core.Contracts.Post
 {
 	public record DeletePostRequest
 	(
-		int PostId,
-		string UserId
+		int PostId
 	);
 }

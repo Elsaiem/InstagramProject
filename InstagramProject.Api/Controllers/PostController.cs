@@ -2,11 +2,14 @@
 using InstagramProject.Core.Service_contract;
 using InstagramProject.Core.Abstractions;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using InstagramProject.Core.Extensions;
 
 namespace InstagramProject.Api.Controllers
 {
 	[Route("api/[controller]")]
 	[ApiController]
+	[Authorize]
 	public class PostController : ControllerBase
 	{
 		private readonly IPostService _postService;
@@ -17,7 +20,7 @@ namespace InstagramProject.Api.Controllers
 		[HttpPost("")]
 		public async Task<IActionResult> CreatePost([FromForm] CreatePostRequest request, CancellationToken cancellationToken)
 		{
-			var response = await _postService.CreatePostAsunc(request, cancellationToken);
+			var response = await _postService.CreatePostAsunc(User.GetUserId()!,request, cancellationToken);
 			return response.IsSuccess ? Ok(response.Value) : response.ToProblem();
 		}
 		[HttpGet("{postId}")]
@@ -29,13 +32,13 @@ namespace InstagramProject.Api.Controllers
 		[HttpPut("")]
 		public async Task<IActionResult> UpdatePost([FromBody] UpdatePostRequest request, CancellationToken cancellationToken)
 		{
-			var response = await _postService.UpdatePostAsync(request, cancellationToken);
+			var response = await _postService.UpdatePostAsync(User.GetUserId()!, request, cancellationToken);
 			return response.IsSuccess ? Ok(response.Value) : response.ToProblem();
 		}
-		[HttpDelete("")]
-		public async Task<IActionResult> DeletePost([FromBody] DeletePostRequest request, CancellationToken cancellationToken)
+		[HttpDelete("{postId}")]
+		public async Task<IActionResult> DeletePost([FromRoute] int postId, CancellationToken cancellationToken)
 		{
-			var response = await _postService.DeletePostAsync(request, cancellationToken);
+			var response = await _postService.DeletePostAsync(User.GetUserId()!, postId, cancellationToken);
 			return response.IsSuccess ? NoContent() : response.ToProblem();
 		}
 	}
