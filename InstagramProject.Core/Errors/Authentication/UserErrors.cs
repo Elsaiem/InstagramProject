@@ -26,6 +26,7 @@ namespace InstagramProject.Core.Errors.Authentication
 		public static readonly Error EnableRecentActivity = new("User.EnableRecentActivity", "User Hide Recent Activity", StatusCodes.Status200OK);
 		public static readonly Error FollowersHidden = new("User.FollowersHidden", "Followers list has been hidden by this user", StatusCodes.Status200OK);
 		public static readonly Error FollowingHidden = new("User.FollowingHidden", "Following list has been hidden by this user", StatusCodes.Status200OK);
+		public static readonly Error PrivateAccountPostsNotVisible = new("User.privateAccount", "posts list has been hidden by this user", StatusCodes.Status200OK);
 		public static readonly Error Unauthorized = new("User.Unauthorized", "Unauthorized access", StatusCodes.Status401Unauthorized);
 		public static readonly Error FollowNotFound = new("User.FollowNotFound", "The follow relationship does not exist", StatusCodes.Status404NotFound);
 		public static readonly Error NotificationGetFailed = new("Notification.GetFailed", "Failed to retrieve notifications: ", StatusCodes.Status500InternalServerError);
@@ -33,5 +34,9 @@ namespace InstagramProject.Core.Errors.Authentication
 		public static readonly Error CannotFollowYourself = new("User.CannotFollowYourself", "You Can't Follow Yourself", StatusCodes.Status400BadRequest);
 		public static readonly Error AlreadyFollowing = new("User.AlreadyFollowing", "You Already Following this User", StatusCodes.Status400BadRequest);
 		public static readonly Error NotFollowing = new("User.NotFollowing", "You Not Following this User", StatusCodes.Status400BadRequest);
-	}
+        public static readonly Error FollowRequestNotFound = new("Profile.FollowRequestNotFound", "Follow request not found", StatusCodes.Status404NotFound);
+        public static readonly Error FollowRequestAlreadyExists = new("Profile.FollowRequestAlreadyExists", "A follow request already exists", StatusCodes.Status400BadRequest);
+
+
+    }
 }
