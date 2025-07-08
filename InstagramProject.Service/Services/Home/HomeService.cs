@@ -1,6 +1,7 @@
 ﻿using InstagramProject.Core.Abstractions;
 using InstagramProject.Core.Contracts.Common;
 using InstagramProject.Core.Contracts.Home;
+using InstagramProject.Core.Contracts.Profile;
 using InstagramProject.Core.Entities.Auth;
 using InstagramProject.Core.Errors.Authentication;
 using InstagramProject.Core.Service_contract;
@@ -41,14 +42,14 @@ namespace InstagramProject.Service.Services.Home
 					p.User.UserName ?? string.Empty,
 					p.Time,
 					string.IsNullOrEmpty(p.PostMedia)
-						? new List<FeedPostResponse>()
-						: ParsePostMedia(p.PostMedia),
+						? Enumerable.Empty<string>()
+						: ParsePostMediaUrls(p.PostMedia),
 					p.Reactions.Count(r => r.IsReaction),
 					p.Comments.Count()
 				));
 			return await PaginatedList<FeedResponse>.CreateAsync(feed, request.PageNumber, request.PageSize, cancellationToken);
 		}
-		public async Task<Result<IEnumerable<SearchResponse>>> SearchForUserAdync(SearchRequest request, CancellationToken cancellationToken)
+		public async Task<Result<IEnumerable<SearchResponse>>> SearchForUserAsync(SearchRequest request, CancellationToken cancellationToken)
 		{
 			if (string.IsNullOrWhiteSpace(request.SearchValue))
 				return Result.Success<IEnumerable<SearchResponse>>(new List<SearchResponse>());
@@ -62,26 +63,62 @@ namespace InstagramProject.Service.Services.Home
 				.Select(u => new SearchResponse(
 					u.Id,
 					u.UserName!,
-					u.ProfilePic ?? string.Empty
+					u.FullName,
+					u.ProfilePic ?? "https://res.cloudinary.com/dbpstijmp/image/upload/v1751892675/awgq5wbmds1147xvxnld.png"
 				))
 				.AsNoTracking()
 				.ToListAsync(cancellationToken);
 			return Result.Success<IEnumerable<SearchResponse>>(userResults);
 		}
-		private static List<FeedPostResponse> ParsePostMedia(string postMediaJson)
+		public async Task<Result<IEnumerable<SuggestionsFollowerResponse>>> SuggestionsFollowerForYouAsync(string userId, CancellationToken cancellationToken)
+		{
+			var user = await _userManager.FindByIdAsync(userId);
+			if (user is null || user.IsDisabled)
+				return Result.Failure<IEnumerable<SuggestionsFollowerResponse>>(UserErrors.UserNotFound);
+
+			var followersId = await _context.UserFollows
+				.Where(uf => uf.UserId == userId)
+				.Select(uf => uf.FollowId)
+				.ToListAsync(cancellationToken);
+
+			var suggestedUsers = await _context.UserFollows
+				.Where(uf => followersId.Contains(uf.UserId) && uf.FollowId != userId && !followersId.Contains(uf.FollowId))
+				.GroupBy(uf => uf.FollowId)
+				.Select(g => new { UserId = g.Key, MutualFriendsCount = g.Count() })
+				.OrderByDescending(x => x.MutualFriendsCount)
+				.Take(10)
+				.ToListAsync(cancellationToken);
+
+			var suggestedUserIds = suggestedUsers.Select(su => su.UserId).ToList();
+			var userDetails = await _context.Users
+				.Where(u => suggestedUserIds.Contains(u.Id))
+				.Select(u => new { u.Id, u.UserName, u.ProfilePic })
+				.ToListAsync(cancellationToken);
+
+			var suggestions = suggestedUsers
+				.Join(userDetails, su => su.UserId, ud => ud.Id, (su, ud) => new SuggestionsFollowerResponse(
+					ud.UserName!,
+					ud.ProfilePic ?? "https://res.cloudinary.com/dbpstijmp/image/upload/v1751892675/awgq5wbmds1147xvxnld.png",
+					su.MutualFriendsCount
+				)).ToList();
+
+			return Result.Success<IEnumerable<SuggestionsFollowerResponse>>(suggestions);
+		}
+		private static IEnumerable<string> ParsePostMediaUrls(string postMediaJson)
 		{
 			using var document = System.Text.Json.JsonDocument.Parse(postMediaJson);
-			var mediaList = new List<FeedPostResponse>();
+			var mediaUrls = new List<string>();
 
 			foreach (var element in document.RootElement.EnumerateArray())
 			{
 				if (element.TryGetProperty("url", out var urlProperty))
 				{
 					var url = urlProperty.GetString() ?? string.Empty;
-					mediaList.Add(new FeedPostResponse(url));
+					if (!string.IsNullOrEmpty(url))
+						mediaUrls.Add(url);
 				}
 			}
-			return mediaList;
+			return mediaUrls;
 		}
 	}
 }

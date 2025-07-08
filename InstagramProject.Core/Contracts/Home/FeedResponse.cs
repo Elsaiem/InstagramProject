@@ -12,7 +12,7 @@ namespace InstagramProject.Core.Contracts.Home
 		string userId,
 		string userName,
 		DateTime Time,
-		IEnumerable<FeedPostResponse> posts,
+		IEnumerable<string> media,
 		int Likes,
 		int Comments
 	);

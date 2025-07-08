@@ -18,16 +18,22 @@ namespace InstagramProject.Api.Controllers
 		{
 			_homeService = homeService;
 		}
-	[HttpGet("")]
-	public async Task<IActionResult> GetUserFeed([FromQuery] RequestFilters request, CancellationToken cancellationToken = default)
-	{
-		var response = await _homeService.UserFeedAsync(User.GetUserId()!, request, cancellationToken);
-		return Ok(response);
-	}
+		[HttpGet("")]
+		public async Task<IActionResult> GetUserFeed([FromQuery] RequestFilters request, CancellationToken cancellationToken = default)
+		{
+			var response = await _homeService.UserFeedAsync(User.GetUserId()!, request, cancellationToken);
+			return Ok(response);
+		}
 		[HttpGet("search")]
 		public async Task<IActionResult> SearchForUser([FromQuery] SearchRequest request, CancellationToken cancellationToken)
 		{
-			var response = await _homeService.SearchForUserAdync(request, cancellationToken);
+			var response = await _homeService.SearchForUserAsync(request, cancellationToken);
+			return response.IsSuccess ? Ok(response.Value) : response.ToProblem();
+		}
+		[HttpGet("suggestions")]
+		public async Task<IActionResult> GetSuggestionsFollowerForYou(CancellationToken cancellationToken)
+		{
+			var response = await _homeService.SuggestionsFollowerForYouAsync(User.GetUserId()!, cancellationToken);
 			return response.IsSuccess ? Ok(response.Value) : response.ToProblem();
 		}
 	}
