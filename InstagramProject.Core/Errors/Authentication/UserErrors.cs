@@ -19,8 +19,8 @@ namespace InstagramProject.Core.Errors.Authentication
 		public static readonly Error EmailNotConfirmed = new("User.EmailNotConfirmed", "Email is not confirmed", StatusCodes.Status401Unauthorized);
 		public static readonly Error UserEmailNotFound = new("User.UserEmailNotFound", "User Email NotFound", StatusCodes.Status404NotFound);
 		public static readonly Error UserNameNotFound = new("User.UserNameNotFound", "User Name NotFound", StatusCodes.Status404NotFound);
-		public static readonly Error UserNotFound = new("User.UserNotFound", "User with this Id NotFound", StatusCodes.Status404NotFound);
-		public static readonly Error FollowerNotFound = new("User.FollowerNotFound", "Follower with this Id NotFound", StatusCodes.Status404NotFound);
+		public static readonly Error UserNotFound = new("User.UserNotFound", "User was NotFound with this information", StatusCodes.Status404NotFound);
+		public static readonly Error FollowerNotFound = new("User.FollowerNotFound", "Follower was NotFound with this information", StatusCodes.Status404NotFound);
 		public static readonly Error DisabledUser = new("User.DisabledUser", "Disabled user, please contact your administrator", StatusCodes.Status401Unauthorized);
 		public static readonly Error InvalidRefreshToken = new("User.InvalidRefreshToken", "Invalid refresh token", StatusCodes.Status401Unauthorized);
 		public static readonly Error EnableRecentActivity = new("User.EnableRecentActivity", "User Hide Recent Activity", StatusCodes.Status200OK);
@@ -34,6 +34,7 @@ namespace InstagramProject.Core.Errors.Authentication
 		public static readonly Error CannotFollowYourself = new("User.CannotFollowYourself", "You Can't Follow Yourself", StatusCodes.Status400BadRequest);
 		public static readonly Error AlreadyFollowing = new("User.AlreadyFollowing", "You Already Following this User", StatusCodes.Status400BadRequest);
 		public static readonly Error NotFollowing = new("User.NotFollowing", "You Not Following this User", StatusCodes.Status400BadRequest);
+		public static readonly Error InvalidBirthday = new("User.InvalidBirthday", "Birthday cannot be in the future", StatusCodes.Status400BadRequest);
         public static readonly Error FollowRequestNotFound = new("Profile.FollowRequestNotFound", "Follow request not found", StatusCodes.Status404NotFound);
         public static readonly Error FollowRequestAlreadyExists = new("Profile.FollowRequestAlreadyExists", "A follow request already exists", StatusCodes.Status400BadRequest);
 

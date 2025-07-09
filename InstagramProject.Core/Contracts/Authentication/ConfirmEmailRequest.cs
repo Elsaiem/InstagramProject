@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace InstagramProject.Core.Contracts.Authentication
 {
     public record ConfirmEmailRequest(
-        string UserId,
+        string UserName,
         string Code
     );
 }

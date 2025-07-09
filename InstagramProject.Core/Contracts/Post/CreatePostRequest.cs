@@ -9,7 +9,6 @@ namespace InstagramProject.Core.Contracts.Post
 {
 	public record CreatePostRequest
 	(
-		string userId,
 		string? Content,
 		IEnumerable<IFormFile> PostMedia
 	);

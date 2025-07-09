@@ -10,9 +10,9 @@ namespace InstagramProject.Core.Service_contract
 {
 	public interface IPostService
 	{
-		Task<Result<PostResponse>> CreatePostAsunc(CreatePostRequest request, CancellationToken cancellationToken);
+		Task<Result<PostResponse>> CreatePostAsunc(string userId, CreatePostRequest request, CancellationToken cancellationToken);
 		Task<Result<PostDetailsResponse>> GetPostAsync(int postId, CancellationToken cancellationToken);
-		Task<Result<PostResponse>> UpdatePostAsync(UpdatePostRequest request, CancellationToken cancellationToken);
-		Task<Result> DeletePostAsync(DeletePostRequest request, CancellationToken cancellationToken);
+		Task<Result<PostResponse>> UpdatePostAsync(string userId, UpdatePostRequest request, CancellationToken cancellationToken);
+		Task<Result> DeletePostAsync(string userId, int postId, CancellationToken cancellationToken);
 	}
 }

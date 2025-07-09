@@ -31,8 +31,12 @@ namespace InstagramProject.Core.Contracts.Authentication
                     .Must(username => (!username.Contains('.') && !username.Contains('_') && !username.Contains('@') && !username.Contains("xss") && !username.Contains('<') && !username.Contains('>')))
                     .WithMessage("Username must not contain (.) or (_) or (@)");
 
-            RuleFor(x => x.BirthDay)
-                .NotEmpty();
-        }
+			RuleFor(x => x.BirthDay)
+				.NotEmpty()
+				.Must(birthday => birthday <= DateOnly.FromDateTime(DateTime.Today))
+				.WithMessage("Birthday cannot be in the future")
+				.Must(birthday => birthday >= DateOnly.FromDateTime(new DateTime(1000, 1, 1)))
+				.WithMessage("Birthday cannot be earlier than January 1, 1000");
+		}
     }
 }

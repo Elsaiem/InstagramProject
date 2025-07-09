@@ -2,6 +2,7 @@
 using InstagramProject.Core.Contracts.Comment;
 using InstagramProject.Core.Contracts.Post;
 using InstagramProject.Core.Entities.Auth;
+using InstagramProject.Core.Errors.Authentication;
 using InstagramProject.Core.Errors.Post;
 using InstagramProject.Core.Service_contract;
 using InstagramProject.Repository.Data.Contexts;
@@ -28,11 +29,11 @@ namespace InstagramProject.Service.Services.Post
 			_userManager = userManager;
 			_fileService = fileService;
 		}
-		public async Task<Result<PostResponse>> CreatePostAsunc(CreatePostRequest request, CancellationToken cancellationToken)
+		public async Task<Result<PostResponse>> CreatePostAsunc(string userId, CreatePostRequest request, CancellationToken cancellationToken)
 		{
-			var user = await _userManager.FindByIdAsync(request.userId);
+			var user = await _userManager.FindByIdAsync(userId);
 			if (user is null)
-				return Result.Failure<PostResponse>(PostErrors.UserNotFound);
+				return Result.Failure<PostResponse>(UserErrors.UserNotFound);
 
 			var postMedia = new List<PostMedia>();
 			foreach (var mediaFile in request.PostMedia)
@@ -100,14 +101,14 @@ namespace InstagramProject.Service.Services.Post
 			);
 			return Result.Success(response);
 		}
-		public async Task<Result<PostResponse>> UpdatePostAsync(UpdatePostRequest request, CancellationToken cancellationToken)
+		public async Task<Result<PostResponse>> UpdatePostAsync(string userId, UpdatePostRequest request, CancellationToken cancellationToken)
 		{
 			var post = await _context.posts.FirstOrDefaultAsync(p => p.Id == request.PostId, cancellationToken);
 			if (post == null)
 				return Result.Failure<PostResponse>(PostErrors.PostNotFound);
 
-			if (post.UserId != request.UserId)
-				return Result.Failure<PostResponse>(PostErrors.UserNotFound);
+			if (post.UserId != userId)
+				return Result.Failure<PostResponse>(UserErrors.Unauthorized);
 
 			if (!string.IsNullOrEmpty(request.Content))
 				post.Content = request.Content;
@@ -175,13 +176,13 @@ namespace InstagramProject.Service.Services.Post
 			}
 			return Result.Success(new PostResponse(post.Id, post.UserId, post.Content, mediaResponse));
 		}
-		public async Task<Result> DeletePostAsync(DeletePostRequest request, CancellationToken cancellationToken)
+		public async Task<Result> DeletePostAsync(string userId, int postId, CancellationToken cancellationToken)
 		{
-			var post = await _context.posts.FirstOrDefaultAsync(p => p.Id == request.PostId, cancellationToken);
+			var post = await _context.posts.FirstOrDefaultAsync(p => p.Id == postId, cancellationToken);
 			if (post == null)
 				return Result.Failure(PostErrors.PostNotFound);
 
-			if (post.UserId != request.UserId)
+			if (post.UserId != userId)
 				return Result.Failure(PostErrors.UnauthorizedAccess);
 
 			if (!string.IsNullOrEmpty(post.PostMedia))

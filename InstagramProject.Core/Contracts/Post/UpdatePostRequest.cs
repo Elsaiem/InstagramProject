@@ -9,7 +9,6 @@ namespace InstagramProject.Core.Contracts.Post
 	public record UpdatePostRequest
 	(
 		int PostId,
-		string UserId,
 		string? Content,
 		IEnumerable<string>? Media
 	);
