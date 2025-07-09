@@ -21,6 +21,11 @@ namespace InstagramProject.Repository.Data.Configuration
 				.WithMany()
 				.HasForeignKey(c => c.UserId)
 				.OnDelete(DeleteBehavior.Restrict);
+
+			builder.HasOne(c => c.ParentComment)
+				.WithMany(c => c.Replies)
+				.HasForeignKey(c => c.ParentCommentId)
+				.OnDelete(DeleteBehavior.Restrict);
 		}
 	}
 }

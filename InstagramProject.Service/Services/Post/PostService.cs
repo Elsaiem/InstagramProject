@@ -1,10 +1,12 @@
 ﻿using InstagramProject.Core.Abstractions;
 using InstagramProject.Core.Contracts.Comment;
 using InstagramProject.Core.Contracts.Post;
+using InstagramProject.Core.Contracts.Common;
 using InstagramProject.Core.Entities.Auth;
 using InstagramProject.Core.Errors.Authentication;
 using InstagramProject.Core.Errors.Post;
 using InstagramProject.Core.Service_contract;
+using InstagramProject.Core.ServiceContract;
 using InstagramProject.Repository.Data.Contexts;
 using InstagramProject.Service.Services.Files;
 using Mapster;
@@ -19,15 +21,18 @@ namespace InstagramProject.Service.Services.Post
 		private readonly ApplicationDbContext _context;
 		private readonly UserManager<ApplicationUser> _userManager;
 		private readonly IFileService _fileService;
+		private readonly ICommentService _commentService;
 
 		public PostService(
 			ApplicationDbContext context,
 			UserManager<ApplicationUser> userManager,
-			IFileService fileService)
+			IFileService fileService,
+			ICommentService commentService)
 		{
 			_context = context;
 			_userManager = userManager;
 			_fileService = fileService;
+			_commentService = commentService;
 		}
 		public async Task<Result<PostResponse>> CreatePostAsunc(string userId, CreatePostRequest request, CancellationToken cancellationToken)
 		{
@@ -64,8 +69,6 @@ namespace InstagramProject.Service.Services.Post
 		{
 			var post = await _context.posts
 				.Include(p => p.User)
-				.Include(p => p.Comments)
-				.ThenInclude(c => c.User)
 				.AsNoTracking()
 				.FirstOrDefaultAsync(p => p.Id == postId, cancellationToken);
 
@@ -89,16 +92,28 @@ namespace InstagramProject.Service.Services.Post
 					}
 				}
 			}
-			var comments = post.Comments.Adapt<List<CommentPostResponse>>();
+			var comments = await _context.comments
+				.Include(c => c.User)
+				.Where(c => c.PostId == postId && c.ParentCommentId == null)
+				.Select(c => new CommentPostResponse(
+					c.UserId,
+					c.User.UserName!,
+					c.User.ProfilePic ?? "https://res.cloudinary.com/dbpstijmp/image/upload/v1751892675/awgq5wbmds1147xvxnld.png",
+					c.Content,
+					c.Replies.Count(),
+					c.Time
+				))
+				.ToListAsync(cancellationToken);
+
 			var response = new PostDetailsResponse(
-				post.Id,
-				post.UserId,
-				post.User.UserName!,
-				post.Time,
-				post.Content,
-				media,
-				comments
-			);
+					post.Id,
+					post.UserId,
+					post.User.UserName!,
+					post.Time,
+					post.Content,
+					media,
+					comments
+				);
 			return Result.Success(response);
 		}
 		public async Task<Result<PostResponse>> UpdatePostAsync(string userId, UpdatePostRequest request, CancellationToken cancellationToken)
@@ -152,7 +167,7 @@ namespace InstagramProject.Service.Services.Post
 					await _context.SaveChangesAsync(cancellationToken);
 					return Result.Success(new PostResponse(post.Id, post.UserId, post.Content, new List<PostMedia>()));
 				}
-				
+
 				var allMedia = finalMedia.Select(m => new { url = m.MediaUrl, type = m.MediaType }).ToList();
 				post.PostMedia = JsonSerializer.Serialize(allMedia);
 			}

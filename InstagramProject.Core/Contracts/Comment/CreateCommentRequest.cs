@@ -1,4 +1,3 @@
-﻿using InstagramProject.Core.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,13 +6,10 @@ using System.Threading.Tasks;
 
 namespace InstagramProject.Core.Contracts.Comment
 {
-	public record CommentPostResponse
+	public record CreateCommentRequest
 	(
-		string UserId,
-		string UserName,
-		string? ProfileImage,
+		int PostId,
 		string Content,
-		int NumberOfReplies,
-		DateTime Time
+		int? ParentCommentId = null
 	);
 }

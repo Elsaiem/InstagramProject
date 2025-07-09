@@ -1,6 +1,8 @@
 ﻿using Hangfire;
 using InstagramProject.Core.Helpers;
 using InstagramProject.Core.Service_contract;
+using InstagramProject.Core.ServiceContract;
+using InstagramProject.Service.Comment;
 using InstagramProject.Service.Services.Authentication;
 using InstagramProject.Service.Services.EmailService;
 using InstagramProject.Service.Services.Files;
@@ -28,6 +30,7 @@ namespace InstagramProject.Service
 			services.AddScoped<IFileService, CloudinaryService>();
 			services.AddScoped<IPostService, PostService>();
 			services.AddScoped<IProfileService, ProfileService>();
+			services.AddScoped<ICommentService, CommentService>();
 			services.Configure<CloudinarySettings>(configuration.GetSection(CloudinarySettings.SectionName));
 			
 			services.AddBackgroundJobsConfig(configuration);

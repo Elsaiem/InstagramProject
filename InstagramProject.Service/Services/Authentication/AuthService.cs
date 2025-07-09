@@ -268,10 +268,12 @@ namespace InstagramProject.Service.Services.Authentication
 			var emailBody = EmailBodyBuilder.GenerateEmailBody("EmailConfirmation",
 				new Dictionary<string, string>
 				{
-					{"{{name}}",user.UserName },
+					{"{{name}}",user.UserName! },
 					{ "{{action_url}}",$"{origin}/auth/emailConfirmation?username={user.UserName}&code={code}" }
 				}
 			);
+			_logger.LogInformation("Email confirmation code sent to user. Email: {Email}, Code: {Code}, Timestamp: {Timestamp}", user.Email, code, DateTime.UtcNow);
+
 			BackgroundJob.Enqueue(() => _emailSender.SendEmailAsync(user.Email!, "✅ Instagram: Confirm your email", emailBody));
 
 			await Task.CompletedTask;
@@ -284,10 +286,15 @@ namespace InstagramProject.Service.Services.Authentication
 			var emailBody = EmailBodyBuilder.GenerateEmailBody("ForgetPassword",
 				new Dictionary<string, string>
 				{
-					{"{{name}}",user.UserName },
+					{"{{name}}",user.UserName! },
 					{ "{{action_url}}",$"{origin}/auth/forgetPassword?email={user.Email}&code={code}" }
 				}
 			);
+
+			// Log the reset password code sending to database
+			_logger.LogInformation("Password reset code sent to user. Email: {Email}, Code: {Code}, Timestamp: {Timestamp}", 
+				user.Email, code, DateTime.UtcNow);
+
 			BackgroundJob.Enqueue(() => _emailSender.SendEmailAsync(user.Email!, "✅ Instagram: Reset your password", emailBody));
 
 			await Task.CompletedTask;

@@ -4,13 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace InstagramProject.Core.Contracts.Home
+namespace InstagramProject.Core.Contracts.Profile
 {
-	public record SearchResponse
+	public record SuggestionsFollowerResponse
 	(
-		string UserId,
 		string UserName,
-		string FullName,
-		string ProfileImage
+		string? ProfilePic,
+		int MutualFriendsCount
 	);
 }
