@@ -39,7 +39,9 @@ namespace InstagramProject.Service.Services.Home
 				.Select(p => new FeedResponse(
 					p.Id,
 					p.UserId,
-					p.User.UserName ?? string.Empty,
+					p.User.UserName,
+					p.User.ProfilePic,
+					p.Content,
 					p.Time,
 					string.IsNullOrEmpty(p.PostMedia)
 						? Enumerable.Empty<string>()
@@ -64,7 +66,7 @@ namespace InstagramProject.Service.Services.Home
 					u.Id,
 					u.UserName!,
 					u.FullName,
-					u.ProfilePic ?? "https://res.cloudinary.com/dbpstijmp/image/upload/v1751892675/awgq5wbmds1147xvxnld.png"
+					u.ProfilePic
 				))
 				.AsNoTracking()
 				.ToListAsync(cancellationToken);
@@ -98,7 +100,7 @@ namespace InstagramProject.Service.Services.Home
 			var suggestions = suggestedUsers
 				.Join(userDetails, su => su.UserId, ud => ud.Id, (su, ud) => new SuggestionsFollowerResponse(
 					ud.UserName!,
-					ud.ProfilePic ?? "https://res.cloudinary.com/dbpstijmp/image/upload/v1751892675/awgq5wbmds1147xvxnld.png",
+					ud.ProfilePic,
 					su.MutualFriendsCount
 				)).ToList();
 
