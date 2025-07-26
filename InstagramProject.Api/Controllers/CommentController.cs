@@ -25,9 +25,15 @@ namespace InstagramProject.Api.Controllers
 			return response.IsSuccess ? Ok(response.Value) : response.ToProblem();
 		}
 		[HttpGet("{postId}/comment/{commentId}")]
-		public async Task<IActionResult> GetCommentWithReplies([FromRoute] int postId, [FromRoute] int commentId,[FromQuery] RequestFilters filters, CancellationToken cancellationToken)
+		public async Task<IActionResult> GetCommentWithReplies([FromRoute] int postId, [FromRoute] int commentId, [FromQuery] RequestFilters filters, CancellationToken cancellationToken)
 		{
-			var response = await _commentService.GetCommentWithRepliesAsync(postId, commentId, filters, cancellationToken);
+			var response = await _commentService.GetCommentWithRepliesAsync(User.GetUserId()!, postId, commentId, filters, cancellationToken);
+			return response.IsSuccess ? Ok(response.Value) : response.ToProblem();
+		}
+		[HttpGet("{postId}")]
+		public async Task<IActionResult> GetPostComments([FromRoute] int postId, CancellationToken cancellationToken)
+		{
+			var response = await _commentService.GetPostComment(User.GetUserId()!, postId, cancellationToken);
 			return response.IsSuccess ? Ok(response.Value) : response.ToProblem();
 		}
 		[HttpDelete("{commentId}")]

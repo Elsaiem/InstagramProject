@@ -1,8 +1,10 @@
 ﻿using InstagramProject.Core.Abstractions;
 using InstagramProject.Core.Contracts.Comment;
 using InstagramProject.Core.Contracts.Common;
+using InstagramProject.Core.Contracts.Post;
 using InstagramProject.Core.Entities.Auth;
 using InstagramProject.Core.Errors.Comment;
+using InstagramProject.Core.Errors.Reaction;
 using InstagramProject.Core.ServiceContract;
 using InstagramProject.Repository.Data.Contexts;
 using Microsoft.AspNetCore.Identity;
@@ -63,12 +65,46 @@ namespace InstagramProject.Service.Comment
 				ParentCommentId: comment.ParentCommentId,
 				UserId: userId,
 				UserName: user.UserName!,
+				ProfilePic: user.ProfilePic ?? string.Empty,
 				Time: comment.Time,
 				RepliesCount: repliesCount
 			);
 			return Result.Success(response);
 		}
-		public async Task<Result<PaginatedList<CommentDetailsResponse>>> GetCommentWithRepliesAsync(int postId, int commentId, RequestFilters filters, CancellationToken cancellationToken = default)
+		public async Task<Result<GetPostCommentResponse>> GetPostComment(string userId, int postId, CancellationToken cancellationToken = default)
+		{
+			var user = await _userManager.FindByIdAsync(userId);
+			if (user is null)
+				return Result.Failure<GetPostCommentResponse>(ReactionErrors.UserNotFound);
+
+			if (!await _context.posts.AnyAsync(p => p.Id == postId, cancellationToken))
+				return Result.Failure<GetPostCommentResponse>(ReactionErrors.PostNotFound);
+
+			var comments = await _context.comments
+				.Where(r => r.PostId == postId && r.ParentCommentId == null)
+				.Include(r => r.User)
+				.Include(r => r.Replies)
+				.Include(r => r.Reactions)
+				.OrderBy(r => r.Time)
+				.Select(r => new CommentPostResponse(
+					r.UserId,
+					r.Id,
+					r.User.UserName!,
+					r.User.ProfilePic ?? string.Empty,
+					r.Content,
+					r.Replies.Count(),
+					r.Reactions.Count(react => react.IsReaction),
+					r.Reactions.Any(r => r.UserId == userId && r.IsReaction),
+					r.Time
+				)).ToListAsync(cancellationToken);
+
+			var response = new GetPostCommentResponse(
+				postId,
+				comments
+			);
+			return Result.Success(response);
+		}
+		public async Task<Result<PaginatedList<CommentDetailsResponse>>> GetCommentWithRepliesAsync(string userId, int postId, int commentId, RequestFilters filters, CancellationToken cancellationToken = default)
 		{
 			var postExists = await _context.posts.AnyAsync(p => p.Id == postId, cancellationToken);
 			if (!postExists)
@@ -93,10 +129,10 @@ namespace InstagramProject.Service.Comment
 					r.ParentCommentId,
 					r.UserId,
 					r.User.UserName!,
-					r.User.ProfilePic ?? "https://res.cloudinary.com/dbpstijmp/image/upload/v1751892675/awgq5wbmds1147xvxnld.png",
+					r.User.ProfilePic,
+					r.Reactions.Any(r => r.UserId == userId && r.IsReaction),
 					r.Time,
-					r.Reactions.Count(react => react.IsReaction),
-					false
+					r.Reactions.Count(react => react.IsReaction)
 				));
 			var paginatedList = await PaginatedList<CommentDetailsResponse>.CreateAsync(
 				repliesQuery, 
