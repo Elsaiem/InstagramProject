@@ -34,7 +34,7 @@ namespace InstagramProject.Service.Services.Home
 					.Where(uf => uf.UserId == userId)
 					.Select(uf => uf.FollowId)
 					.Contains(p.UserId))
-				.OrderBy(p => p.Time)
+				   .OrderByDescending(p => p.Time).ThenByDescending(p => p.Id)
 				.AsNoTracking()
 				.Select(p => new FeedResponse(
 					p.Id,
@@ -46,6 +46,7 @@ namespace InstagramProject.Service.Services.Home
 					string.IsNullOrEmpty(p.PostMedia)
 						? Enumerable.Empty<string>()
 						: ParsePostMediaUrls(p.PostMedia),
+					p.Reactions.Any(r => r.UserId == userId && r.IsReaction),
 					p.Reactions.Count(r => r.IsReaction),
 					p.Comments.Count()
 				));

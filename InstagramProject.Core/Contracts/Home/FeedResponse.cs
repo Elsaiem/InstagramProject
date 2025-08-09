@@ -15,7 +15,8 @@ namespace InstagramProject.Core.Contracts.Home
 		string Content,
 		DateTime Time,
 		IEnumerable<string> media,
-		int Likes,
-		int Comments
+		bool IsReacted,
+		int LikesCount,
+		int CommentsCount
 	);
 }
