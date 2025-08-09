@@ -1,7 +1,9 @@
-﻿using InstagramProject.Core.Contracts.UserFollow;
+﻿using InstagramProject.Core.Abstractions;
+using InstagramProject.Core.Contracts.Profile;
+using InstagramProject.Core.Contracts.UserFollow;
 using InstagramProject.Core.Extensions;
 using InstagramProject.Core.Service_contract;
-using InstagramProject.Core.Abstractions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using InstagramProject.Core.Contracts.Profile;
 
@@ -9,6 +11,7 @@ namespace InstagramProject.Api.Controllers
 {
 	[Route("api/[controller]")]
 	[ApiController]
+	[Authorize]
 	public class ProfileController : ControllerBase
 	{
 		private readonly IProfileService _profileService;
@@ -16,8 +19,13 @@ namespace InstagramProject.Api.Controllers
 		{
 			_profileService = profileService;
 		}
-       
-        [HttpDelete("DeleteAccount")]
+		[HttpGet("{userName}")]
+		public async Task<IActionResult> GetUserDetails(string userName, CancellationToken cancellationToken)
+		{
+			var result = await _profileService.GetUserDetailsAsync(userName, User.GetUserName()!, cancellationToken);
+			return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
+		}
+		[HttpDelete("delete-account")]
         public async Task<IActionResult> DeleteAccount(CancellationToken cancellationToken)
         {
             var result = await _profileService.DeleteAsync(cancellationToken);
@@ -26,7 +34,7 @@ namespace InstagramProject.Api.Controllers
 
             return Ok(result.Message);
         }
-        [HttpPut("UpdateAccount")]
+        [HttpPut("update-account")]
         public async Task<IActionResult> UpdateAccount([FromForm] UpdateProfileRequest request, CancellationToken cancellationToken)
         {
             var result = await _profileService.UpdateProfileAsync(request, cancellationToken);
@@ -56,19 +64,19 @@ namespace InstagramProject.Api.Controllers
             var result = await _profileService.HandleFollowActionAsync(targetUserId, cancellationToken);
             return result.IsSuccess ? Ok(result) : BadRequest(result);
         }
-        [HttpDelete("UnFollow")]
+        [HttpDelete("un-follow")]
         public async Task<IActionResult> DeleteUserFollow([FromBody] AddFollowRequest request, CancellationToken cancellationToken)
         {
             var result = await _profileService.DeleteUserFollowAsync(request, cancellationToken);
             return result.IsSuccess ? Ok(result) : NotFound(result);
         }
-        [HttpPost("AcceptFollowRequest")]
+        [HttpPost("accept-follow-request")]
         public async Task<IActionResult> AcceptFollowRequest([FromBody] string requesterId, CancellationToken cancellationToken)
         {
             var result = await _profileService.AcceptFollowRequestAsync(requesterId, cancellationToken);
             return result.IsSuccess ? Ok(result) : BadRequest(result);
         }
-        [HttpPost("RejectFollowRequest")]
+        [HttpPost("reject-follow-request")]
         public async Task<IActionResult> RejectFollowRequest([FromBody] string requesterId, CancellationToken cancellationToken)
         {
             var result = await _profileService.RejectFollowRequestAsync(requesterId, cancellationToken);
@@ -99,7 +107,7 @@ namespace InstagramProject.Api.Controllers
             var result = await _profileService.RemoveFollowersAsync(request, cancellationToken);
             return result.IsSuccess ? Ok() : result.ToProblem();
         }
-        [HttpGet("PendingFollowRequests")]
+        [HttpGet("pending-follow-requests")]
         public async Task<IActionResult> GetPendingFollowRequests(CancellationToken cancellationToken)
         {
             var result = await _profileService.GetPendingFollowRequestsAsync(cancellationToken);

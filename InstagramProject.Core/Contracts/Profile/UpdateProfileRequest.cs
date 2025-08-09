@@ -10,10 +10,9 @@ namespace InstagramProject.Core.Contracts.Profile
     public record UpdateProfileRequest
     (
         string? FullName,
-        string? Email,
         string? UserName,
         string? Bio,
         string? Password,
-        IEnumerable<IFormFile>? Profile_Image
+		IFormFile? ProfilePic
     );
 }

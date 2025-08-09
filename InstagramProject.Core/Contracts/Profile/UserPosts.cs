@@ -6,11 +6,10 @@ using System.Threading.Tasks;
 
 namespace InstagramProject.Core.Contracts.Profile
 {
-    public record UpdateProfileRequestBack
-    (
-         string? FullName,
-         string? UserName,
-         string? Bio,
-         string? ProfilePic
-    );
+	public record UserPosts
+	(
+		string url,
+		int likesCount,
+		int commentsCount
+	);
 }

@@ -41,7 +41,65 @@ namespace InstagramProject.Service.Services.Profile
 			_unitOfWork = unitOfWork;
 			_serviceProvider = serviceProvider;
 		}
+		public async Task<Result<UserDetailsResponse>> GetUserDetailsAsync(string userName, string currentuserName, CancellationToken cancellationToken = default)
+		{
+			var user = await _userManager.FindByNameAsync(userName);
+			if (user is null)
+				return Result.Failure<UserDetailsResponse>(UserErrors.UserNotFound);
 
+			var currentUser = await _userManager.FindByNameAsync(currentuserName);
+			var postsData = await _context.posts
+				.Include(p => p.Comments)
+				.Include(p => p.Reactions)
+				.Where(p => p.UserId == user.Id)
+				.OrderByDescending(p => p.Time)
+				.Select(p => new
+				{
+					PostMedia = p.PostMedia ?? string.Empty,
+					LikesCount = p.Reactions.Count(r => r.IsReaction),
+					CommentsCount = p.Comments.Count()
+				})
+				.ToListAsync(cancellationToken);
+
+			var userPosts = postsData.Select(p =>
+			{
+				var mediaUrl = string.Empty;
+				if (!string.IsNullOrEmpty(p.PostMedia))
+				{
+					var mediaObjects = JsonSerializer.Deserialize<List<JsonElement>>(p.PostMedia);
+					if (mediaObjects != null && mediaObjects.Any())
+					{
+						var firstMedia = mediaObjects.FirstOrDefault();
+						if (firstMedia.TryGetProperty("url", out var urlProperty))
+						{
+							mediaUrl = urlProperty.GetString() ?? string.Empty;
+						}
+					}
+				}
+				return new UserPosts(
+					mediaUrl,
+					p.LikesCount,
+					p.CommentsCount
+				);
+			}).ToList();
+
+			var response = new UserDetailsResponse
+			(
+				user.Id,
+				user.UserName!,
+				user.FullName,
+				user.ProfilePic ?? string.Empty,
+				user.Bio ?? string.Empty,
+				await _context.UserFollows.CountAsync(uf => uf.FollowId == user.Id, cancellationToken),
+				await _context.UserFollows.CountAsync(uf => uf.UserId == user.Id, cancellationToken),
+				await _context.posts.CountAsync(p => p.UserId == user.Id, cancellationToken),
+				currentUser != null && await _context.UserFollows.AnyAsync(uf => uf.UserId == currentUser.Id && uf.FollowId == user.Id, cancellationToken),
+				currentuserName == userName,
+				user.IsEnablePublicOrPrivate,
+				userPosts
+			);
+			return Result.Success(response);
+		}
 		public async Task<Result> AcceptFollowRequestAsync(string requesterId, CancellationToken cancellationToken = default)
 		{
 			var userId = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -66,9 +124,6 @@ namespace InstagramProject.Service.Services.Profile
 			await _context.SaveChangesAsync(cancellationToken);
 			return Result.Success();
 		}
-
-
-
 		public async Task<OperationResult> DeleteAsync(CancellationToken cancellationToken = default)
 		{
 			var userId = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -374,16 +429,6 @@ namespace InstagramProject.Service.Services.Profile
 				}
 			}
 
-			if (!string.IsNullOrWhiteSpace(request.Email) && request.Email != user.Email)
-			{
-				var emailResult = await _userManager.SetEmailAsync(user, request.Email);
-				if (!emailResult.Succeeded)
-				{
-					var error = emailResult.Errors.First();
-					return Result.Failure<UpdateProfileRequestBack>(new Error(error.Code, error.Description, StatusCodes.Status400BadRequest));
-				}
-			}
-
 			if (!string.IsNullOrWhiteSpace(request.Bio))
 				user.Bio = request.Bio;
 
@@ -398,9 +443,8 @@ namespace InstagramProject.Service.Services.Profile
 				}
 			}
 
-			if (request.Profile_Image != null && request.Profile_Image.Any())
+			if (request.ProfilePic != null)
 			{
-				// Delete old images
 				if (!string.IsNullOrEmpty(user.ProfilePic))
 				{
 					var mediaObjects = JsonSerializer.Deserialize<List<JsonElement>>(user.ProfilePic);
@@ -425,9 +469,7 @@ namespace InstagramProject.Service.Services.Profile
 				}
 
 				var profileMedia = new List<ProfileMedia>();
-				foreach (var mediaFile in request.Profile_Image)
-				{
-					var result = await _fileService.UploadToCloudinaryAsync(mediaFile);
+				var result = await _fileService.UploadToCloudinaryAsync(request.ProfilePic);
 					if (result.IsSuccess)
 					{
 						profileMedia.Add(new ProfileMedia(result.Value.SecureUrl));
@@ -445,16 +487,14 @@ namespace InstagramProject.Service.Services.Profile
 				return Result.Failure<UpdateProfileRequestBack>(new Error(error.Code, error.Description, StatusCodes.Status400BadRequest));
 			}
 
-			var updated = new UpdateProfileRequestBack
-			{
-				UserName = user.UserName,
-				Email = user.Email,
-				Bio = user.Bio,
-				Profile_Image = user.ProfilePic,
-				FullName = user.FullName,
-			};
+			var response = new UpdateProfileRequestBack(
+				user.FullName,
+				user.UserName,
+				user.Bio,
+				user.ProfilePic
+			);
 
-			return Result.Success(updated);
+			return Result.Success(response);
 		}
 		public async Task<Result> ToggleFollowerAndFollowing(string userName, CancellationToken cancellationToken = default)
 		{
