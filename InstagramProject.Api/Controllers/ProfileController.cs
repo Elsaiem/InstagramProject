@@ -5,7 +5,6 @@ using InstagramProject.Core.Extensions;
 using InstagramProject.Core.Service_contract;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using InstagramProject.Core.Contracts.Profile;
 
 namespace InstagramProject.Api.Controllers
 {
@@ -40,46 +39,47 @@ namespace InstagramProject.Api.Controllers
             var result = await _profileService.UpdateProfileAsync(request, cancellationToken);
             return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
         }
-        [HttpPut("toggle-following")]
-        public async Task<IActionResult> ToggleFollowingAndFollowers(CancellationToken cancellationToken)
-        {
-            var result = await _profileService.ToggleFollowerAndFollowing(User.GetUserName()!, cancellationToken);
-            return result.IsSuccess ? NoContent() : result.ToProblem();
-        }
-        [HttpPut("toggle-PrivateAccount")]
+        //[HttpPut("toggle-following")]
+        //public async Task<IActionResult> ToggleFollowingAndFollowers(CancellationToken cancellationToken)
+        //{
+        //    var result = await _profileService.ToggleFollowerAndFollowing(User.GetUserName()!, cancellationToken);
+        //    return result.IsSuccess ? NoContent() : result.ToProblem();
+        //}
+
+        [HttpPut("toggle-private")]
         public async Task<IActionResult> togglePrivateAccount(CancellationToken cancellationToken)
         {
             var result = await _profileService.TogglePrivacyTheAccount(User.GetUserName()!, cancellationToken);
             return result.IsSuccess ? NoContent() : result.ToProblem();
         }
-        [HttpGet("privacy")]
-        public async Task<IActionResult> GetPrivacy(CancellationToken cancellationToken)
+        //[HttpGet("privacy")]
+        //public async Task<IActionResult> GetPrivacy(CancellationToken cancellationToken)
+        //{
+        //    var result = await _profileService.GetPrivacyAsync(User.GetUserName()!, cancellationToken);
+        //    return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
+        //}
+        [HttpPost("follow")]
+        public async Task<IActionResult> AddUserFollow([FromBody] AddFollowRequest request, CancellationToken cancellationToken)
         {
-            var result = await _profileService.GetPrivacyAsync(User.GetUserName()!, cancellationToken);
-            return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
-        }
-        [HttpPost("Follow")]
-        public async Task<IActionResult> AddUserFollow([FromBody] string targetUserId, CancellationToken cancellationToken)
-        {
-            var result = await _profileService.HandleFollowActionAsync(targetUserId, cancellationToken);
+            var result = await _profileService.HandleFollowActionAsync(User.GetUserId()!, request, cancellationToken);
             return result.IsSuccess ? Ok(result) : BadRequest(result);
         }
         [HttpDelete("un-follow")]
-        public async Task<IActionResult> DeleteUserFollow([FromBody] AddFollowRequest request, CancellationToken cancellationToken)
+        public async Task<IActionResult> DeleteUserFollow([FromBody] UnFollowRequest request, CancellationToken cancellationToken)
         {
             var result = await _profileService.DeleteUserFollowAsync(request, cancellationToken);
             return result.IsSuccess ? Ok(result) : NotFound(result);
         }
         [HttpPost("accept-follow-request")]
-        public async Task<IActionResult> AcceptFollowRequest([FromBody] string requesterId, CancellationToken cancellationToken)
+        public async Task<IActionResult> AcceptFollowRequest([FromBody] AddFollowRequest request, CancellationToken cancellationToken)
         {
-            var result = await _profileService.AcceptFollowRequestAsync(requesterId, cancellationToken);
+            var result = await _profileService.AcceptFollowRequestAsync(request, cancellationToken);
             return result.IsSuccess ? Ok(result) : BadRequest(result);
         }
         [HttpPost("reject-follow-request")]
-        public async Task<IActionResult> RejectFollowRequest([FromBody] string requesterId, CancellationToken cancellationToken)
+        public async Task<IActionResult> RejectFollowRequest([FromBody] AddFollowRequest request, CancellationToken cancellationToken)
         {
-            var result = await _profileService.RejectFollowRequestAsync(requesterId, cancellationToken);
+            var result = await _profileService.RejectFollowRequestAsync(request, cancellationToken);
             return result.IsSuccess ? Ok(result) : BadRequest(result);
         }
 
@@ -95,12 +95,12 @@ namespace InstagramProject.Api.Controllers
             var result = await _profileService.GetAllFollowing(userName, cancellationToken);
             return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
         }
-        [HttpGet("follow-details/{followName}")]
-        public async Task<IActionResult> GetFollowDetails([FromRoute] string followName, CancellationToken cancellationToken)
-        {
-            var result = await _profileService.GetFollowersDetailsAsync(User.GetUserId()!, followName, cancellationToken);
-            return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
-        }
+        //[HttpGet("follow-details/{followName}")]
+        //public async Task<IActionResult> GetFollowDetails([FromRoute] string followName, CancellationToken cancellationToken)
+        //{
+        //    var result = await _profileService.GetFollowersDetailsAsync(User.GetUserId()!, followName, cancellationToken);
+        //    return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
+        //}
         [HttpDelete("remove-follower")]
         public async Task<IActionResult> RemoveFollower([FromBody] RemoveFollowerRequest request, CancellationToken cancellationToken)
         {
@@ -113,22 +113,20 @@ namespace InstagramProject.Api.Controllers
             var result = await _profileService.GetPendingFollowRequestsAsync(cancellationToken);
             return result.IsSuccess ? Ok(result) : BadRequest(result);
         }
-        [HttpGet("UserPosts/{userId}")]
-        public async Task<IActionResult> GetUserPosts(string userId, CancellationToken cancellationToken)
-        {
-            var result = await _profileService.GetUserPosts(userId, cancellationToken);
-            return result.IsSuccess ? Ok(result) : BadRequest(result);
-        }
-        [HttpGet("FollowStatus/{targetUserId}")]
-        public async Task<IActionResult> GetFollowStatus(string targetUserId, CancellationToken cancellationToken)
-        {
-            var result = await _profileService.GetFollowStatusAsync(targetUserId, cancellationToken);
+        //[HttpGet("UserPosts/{userId}")]
+        //public async Task<IActionResult> GetUserPosts(string userId, CancellationToken cancellationToken)
+        //{
+        //    var result = await _profileService.GetUserPosts(userId, cancellationToken);
+        //    return result.IsSuccess ? Ok(result) : BadRequest(result);
+        //}
+        //[HttpGet("FollowStatus/{targetUserId}")]
+        //public async Task<IActionResult> GetFollowStatus(string targetUserId, CancellationToken cancellationToken)
+        //{
+        //    var result = await _profileService.GetFollowStatusAsync(targetUserId, cancellationToken);
 
-            return result.IsSuccess
-                ? Ok(result.Value)
-                : result.ToProblem(); // assuming you have an extension method to map Result<Error> to ProblemDetails
-        }
-
-
+        //    return result.IsSuccess
+        //        ? Ok(result.Value)
+        //        : result.ToProblem(); // assuming you have an extension method to map Result<Error> to ProblemDetails
+        //}
     }
 }

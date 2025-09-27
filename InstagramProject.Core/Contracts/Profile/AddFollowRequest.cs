@@ -6,10 +6,8 @@ using System.Threading.Tasks;
 
 namespace InstagramProject.Core.Contracts.Profile
 {
-    public record AddFollowRequest
-    {
-        public string UserId { get; init; }
-        public string FollowId { get; init; }
-        public DateTime? FollowedOn { get; init; } = DateTime.UtcNow;
-    }
+	public record AddFollowRequest
+	(
+		string followId
+	);
 }

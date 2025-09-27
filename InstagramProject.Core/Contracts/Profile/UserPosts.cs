@@ -1,4 +1,5 @@
-﻿using System;
+﻿using InstagramProject.Core.Contracts.Post;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,8 +9,6 @@ namespace InstagramProject.Core.Contracts.Profile
 {
 	public record UserPosts
 	(
-		string url,
-		int likesCount,
-		int commentsCount
+		IEnumerable<PostResponse> postDetails
 	);
 }

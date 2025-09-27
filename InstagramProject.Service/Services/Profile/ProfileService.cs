@@ -55,6 +55,10 @@ namespace InstagramProject.Service.Services.Profile
 				.OrderByDescending(p => p.Time)
 				.Select(p => new
 				{
+					PostId = p.Id,
+					p.UserId,
+					p.Content,
+					p.Time,
 					PostMedia = p.PostMedia ?? string.Empty,
 					LikesCount = p.Reactions.Count(r => r.IsReaction),
 					CommentsCount = p.Comments.Count()
@@ -63,28 +67,46 @@ namespace InstagramProject.Service.Services.Profile
 
 			var userPosts = postsData.Select(p =>
 			{
-				var mediaUrl = string.Empty;
+				var mediaList = new List<PostMedia>();
 				if (!string.IsNullOrEmpty(p.PostMedia))
 				{
-					var mediaObjects = JsonSerializer.Deserialize<List<JsonElement>>(p.PostMedia);
-					if (mediaObjects != null && mediaObjects.Any())
+					try
 					{
-						var firstMedia = mediaObjects.FirstOrDefault();
-						if (firstMedia.TryGetProperty("url", out var urlProperty))
+						var mediaElements = JsonSerializer.Deserialize<List<JsonElement>>(p.PostMedia);
+						if (mediaElements != null)
 						{
-							mediaUrl = urlProperty.GetString() ?? string.Empty;
+							foreach (var el in mediaElements)
+							{
+								string url = string.Empty;
+								string? type = null;
+
+								if (el.TryGetProperty("url", out var urlProp))
+									url = urlProp.GetString() ?? string.Empty;
+
+								if (el.TryGetProperty("type", out var typeProp))
+									type = typeProp.GetString();
+
+								mediaList.Add(new PostMedia(url, type));
+							}
 						}
 					}
+					catch
+					{
+						mediaList = new List<PostMedia>();
+					}
 				}
-				return new UserPosts(
-					mediaUrl,
-					p.LikesCount,
-					p.CommentsCount
+
+				var postResponse = new PostResponse(
+					PostId: p.PostId,
+					UserId: p.UserId,
+					Content: p.Content,
+					CreatedAt: p.Time,
+					Media: mediaList.AsEnumerable()
 				);
+				return new UserPosts(new[] { postResponse }.AsEnumerable());
 			}).ToList();
 
-			var response = new UserDetailsResponse
-			(
+			var response = new UserDetailsResponse(
 				user.Id,
 				user.UserName!,
 				user.FullName,
@@ -96,25 +118,25 @@ namespace InstagramProject.Service.Services.Profile
 				currentUser != null && await _context.UserFollows.AnyAsync(uf => uf.UserId == currentUser.Id && uf.FollowId == user.Id, cancellationToken),
 				currentuserName == userName,
 				user.IsEnablePublicOrPrivate,
-				userPosts
+				userPosts.AsEnumerable()
 			);
 			return Result.Success(response);
 		}
-		public async Task<Result> AcceptFollowRequestAsync(string requesterId, CancellationToken cancellationToken = default)
+		public async Task<Result> AcceptFollowRequestAsync(AddFollowRequest request, CancellationToken cancellationToken = default)
 		{
 			var userId = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
 			if (string.IsNullOrEmpty(userId))
 				return Result.Failure(UserErrors.Unauthorized);
 
 			var followRequest = await _context.FollowRequests
-				.FirstOrDefaultAsync(fr => fr.RequesterId == requesterId && fr.TargetUserId == userId && !fr.IsAccepted);
+				.FirstOrDefaultAsync(fr => fr.RequesterId == request.followId && fr.TargetUserId == userId && !fr.IsAccepted);
 			if (followRequest == null)
 				return Result.Failure(UserErrors.FollowRequestNotFound);
 
 			followRequest.IsAccepted = true;
 			var follow = new UserFollow
 			{
-				UserId = requesterId,
+				UserId = request.followId,
 				FollowId = userId,
 				FollowedOn = DateTime.UtcNow
 			};
@@ -143,7 +165,7 @@ namespace InstagramProject.Service.Services.Profile
 			return OperationResult.Success("User deleted and signed out.");
 		}
 
-		public async Task<OperationResult> DeleteUserFollowAsync(AddFollowRequest request, CancellationToken cancellationToken = default)
+		public async Task<OperationResult> DeleteUserFollowAsync(UnFollowRequest request, CancellationToken cancellationToken = default)
 		{
 			try
 			{
@@ -241,47 +263,47 @@ namespace InstagramProject.Service.Services.Profile
 			return Result.Success<IEnumerable<UserDataFollow>>(following);
 		}
 
-		public async Task<Result<FollowerDetailsResponse>> GetFollowersDetailsAsync(string userId, string followName, CancellationToken cancellationToken = default)
-		{
-			var userRepo = _unitOfWork.Repository<ApplicationUser>().GetQueryable();
-			var user = await userRepo.FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
-			if (user is null)
-				return Result.Failure<FollowerDetailsResponse>(UserErrors.UserNotFound);
+		//public async Task<Result<FollowerDetailsResponse>> GetFollowersDetailsAsync(string userId, string followName, CancellationToken cancellationToken = default)
+		//{
+		//	var userRepo = _unitOfWork.Repository<ApplicationUser>().GetQueryable();
+		//	var user = await userRepo.FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+		//	if (user is null)
+		//		return Result.Failure<FollowerDetailsResponse>(UserErrors.UserNotFound);
 
-			var follower = await userRepo.FirstOrDefaultAsync(u => u.UserName == followName, cancellationToken);
-			if (follower is null)
-				return Result.Failure<FollowerDetailsResponse>(UserErrors.FollowerNotFound);
+		//	var follower = await userRepo.FirstOrDefaultAsync(u => u.UserName == followName, cancellationToken);
+		//	if (follower is null)
+		//		return Result.Failure<FollowerDetailsResponse>(UserErrors.FollowerNotFound);
 
-			var userFollowRepo = _unitOfWork.Repository<UserFollow>().GetQueryable();
-			var isFollowing = await userFollowRepo.AnyAsync(uf => uf.UserId == userId && uf.FollowId == follower.Id, cancellationToken);
-			var response = new FollowerDetailsResponse(
-				follower.UserName!,
-				follower.FullName,
-				follower.ProfilePic,
-				isFollowing
+		//	var userFollowRepo = _unitOfWork.Repository<UserFollow>().GetQueryable();
+		//	var isFollowing = await userFollowRepo.AnyAsync(uf => uf.UserId == userId && uf.FollowId == follower.Id, cancellationToken);
+		//	var response = new FollowerDetailsResponse(
+		//		follower.UserName!,
+		//		follower.FullName,
+		//		follower.ProfilePic,
+		//		isFollowing
 
-			);
-			return Result.Success(response);
-		}
+		//	);
+		//	return Result.Success(response);
+		//}
 
-		public async Task<Result<FollowStatus>> GetFollowStatusAsync(string targetUserId, CancellationToken cancellationToken = default)
-		{
-			var userId = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
-			if (string.IsNullOrEmpty(userId))
-				return Result.Failure<FollowStatus>(UserErrors.Unauthorized);
+		//public async Task<Result<FollowStatus>> GetFollowStatusAsync(string targetUserId, CancellationToken cancellationToken = default)
+		//{
+		//	var userId = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+		//	if (string.IsNullOrEmpty(userId))
+		//		return Result.Failure<FollowStatus>(UserErrors.Unauthorized);
 
-			var isFollowing = await _context.UserFollows
-				.AnyAsync(uf => uf.UserId == userId && uf.FollowId == targetUserId);
-			if (isFollowing)
-				return Result.Success(FollowStatus.Following);
+		//	var isFollowing = await _context.UserFollows
+		//		.AnyAsync(uf => uf.UserId == userId && uf.FollowId == targetUserId);
+		//	if (isFollowing)
+		//		return Result.Success(FollowStatus.Following);
 
-			var hasPendingRequest = await _context.FollowRequests
-				.AnyAsync(fr => fr.RequesterId == userId && fr.TargetUserId == targetUserId && !fr.IsAccepted);
-			if (hasPendingRequest)
-				return Result.Success(FollowStatus.Requested);
+		//	var hasPendingRequest = await _context.FollowRequests
+		//		.AnyAsync(fr => fr.RequesterId == userId && fr.TargetUserId == targetUserId && !fr.IsAccepted);
+		//	if (hasPendingRequest)
+		//		return Result.Success(FollowStatus.Requested);
 
-			return Result.Success(FollowStatus.NotFollowing);
-		}
+		//	return Result.Success(FollowStatus.NotFollowing);
+		//}
 
 		public async Task<Result<IEnumerable<FollowRequest>>> GetPendingFollowRequestsAsync(CancellationToken cancellationToken = default)
 		{
@@ -297,42 +319,41 @@ namespace InstagramProject.Service.Services.Profile
 			return Result.Success<IEnumerable<FollowRequest>>(pendingRequests);
 		}
 
-		public async Task<Result<PrivacyResponse>> GetPrivacyAsync(string userName, CancellationToken cancellationToken = default)
-		{
-			if (userName is null)
-				return Result.Failure<PrivacyResponse>(UserErrors.UserNameNotFound);
-			var user = await _userManager.FindByNameAsync(userName);
-			if (user is null)
-				return Result.Failure<PrivacyResponse>(UserErrors.UserNameNotFound);
+		//public async Task<Result<PrivacyResponse>> GetPrivacyAsync(string userName, CancellationToken cancellationToken = default)
+		//{
+		//	if (userName is null)
+		//		return Result.Failure<PrivacyResponse>(UserErrors.UserNameNotFound);
+		//	var user = await _userManager.FindByNameAsync(userName);
+		//	if (user is null)
+		//		return Result.Failure<PrivacyResponse>(UserErrors.UserNameNotFound);
 
-			var privacyResponse = new PrivacyResponse
-			(
-				IsEnableFollowerAndFollowing: user.IsEnableFollowerAndFollowing,
-				IsEnablePublicOrPrivate: user.IsEnablePublicOrPrivate
-			);
-			return Result.Success(privacyResponse);
-		}
+		//	var privacyResponse = new PrivacyResponse
+		//	(
+		//		IsEnableFollowerAndFollowing: user.IsEnableFollowerAndFollowing,
+		//		IsEnablePublicOrPrivate: user.IsEnablePublicOrPrivate
+		//	);
+		//	return Result.Success(privacyResponse);
+		//}
 
-		public async Task<Result> HandleFollowActionAsync(string targetUserId, CancellationToken cancellationToken = default)
+		public async Task<Result> HandleFollowActionAsync(string userId, AddFollowRequest request, CancellationToken cancellationToken = default)
 		{
-			var userId = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
 			if (string.IsNullOrEmpty(userId))
 				return Result.Failure(UserErrors.Unauthorized);
 
-			if (userId == targetUserId)
+			if (userId == request.followId)
 				return Result.Failure(UserErrors.CannotFollowYourself);
 
-			var targetUser = await _userManager.FindByIdAsync(targetUserId);
+			var targetUser = await _userManager.FindByIdAsync(request.followId);
 			if (targetUser == null)
 				return Result.Failure(UserErrors.UserNotFound);
 
 			var existingFollow = await _context.UserFollows
-				.FirstOrDefaultAsync(uf => uf.UserId == userId && uf.FollowId == targetUserId);
+				.FirstOrDefaultAsync(uf => uf.UserId == userId && uf.FollowId == request.followId);
 			if (existingFollow != null)
 				return Result.Failure(UserErrors.AlreadyFollowing);
 
 			var existingRequest = await _context.FollowRequests
-				.FirstOrDefaultAsync(fr => fr.RequesterId == userId && fr.TargetUserId == targetUserId);
+				.FirstOrDefaultAsync(fr => fr.RequesterId == userId && fr.TargetUserId == request.followId);
 			if (existingRequest != null)
 				return Result.Failure(UserErrors.FollowRequestAlreadyExists);
 
@@ -342,7 +363,7 @@ namespace InstagramProject.Service.Services.Profile
 				var followRequest = new FollowRequest
 				{
 					RequesterId = userId,
-					TargetUserId = targetUserId,
+					TargetUserId = request.followId,
 					RequestedAt = DateTime.UtcNow
 				};
 				await _context.FollowRequests.AddAsync(followRequest);
@@ -355,7 +376,7 @@ namespace InstagramProject.Service.Services.Profile
 				var follow = new UserFollow
 				{
 					UserId = userId,
-					FollowId = targetUserId,
+					FollowId = request.followId,
 					FollowedOn = DateTime.UtcNow
 				};
 				await _context.UserFollows.AddAsync(follow);
@@ -364,14 +385,14 @@ namespace InstagramProject.Service.Services.Profile
 			}
 		}
 
-		public async Task<Result> RejectFollowRequestAsync(string requesterId, CancellationToken cancellationToken = default)
+		public async Task<Result> RejectFollowRequestAsync(AddFollowRequest request, CancellationToken cancellationToken = default)
 		{
 			var userId = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
 			if (string.IsNullOrEmpty(userId))
 				return Result.Failure(UserErrors.Unauthorized);
 
 			var followRequest = await _context.FollowRequests
-				.FirstOrDefaultAsync(fr => fr.RequesterId == requesterId && fr.TargetUserId == userId && !fr.IsAccepted);
+				.FirstOrDefaultAsync(fr => fr.RequesterId == request.followId && fr.TargetUserId == userId && !fr.IsAccepted);
 			if (followRequest == null)
 				return Result.Failure(UserErrors.FollowRequestNotFound);
 
@@ -461,7 +482,6 @@ namespace InstagramProject.Service.Services.Profile
 									var deleteResult = await _fileService.DeleteFromCloudinaryAsync(publicId);
 									if (!deleteResult.IsSuccess)
 										return Result.Failure<UpdateProfileRequestBack>(PostErrors.MediaDeletionFailed);
-									;
 								}
 							}
 						}
@@ -470,12 +490,10 @@ namespace InstagramProject.Service.Services.Profile
 
 				var profileMedia = new List<ProfileMedia>();
 				var result = await _fileService.UploadToCloudinaryAsync(request.ProfilePic);
-					if (result.IsSuccess)
-					{
-						profileMedia.Add(new ProfileMedia(result.Value.SecureUrl));
-					}
+				if (result.IsSuccess)
+				{
+					profileMedia.Add(new ProfileMedia(result.Value.SecureUrl));
 				}
-
 				var mediaUrls = profileMedia.Select(media => new { url = media.MediaUrl }).ToList();
 				user.ProfilePic = JsonSerializer.Serialize(mediaUrls);
 			}
@@ -496,17 +514,17 @@ namespace InstagramProject.Service.Services.Profile
 
 			return Result.Success(response);
 		}
-		public async Task<Result> ToggleFollowerAndFollowing(string userName, CancellationToken cancellationToken = default)
-		{
-			if (userName is null)
-				return Result.Failure<PrivacyResponse>(UserErrors.UserNameNotFound);
-			var user = await _userManager.FindByNameAsync(userName);
-			if (user is null)
-				return Result.Failure(UserErrors.UserNameNotFound);
-			user.IsEnableFollowerAndFollowing = !user.IsEnableFollowerAndFollowing;
-			await _context.SaveChangesAsync(cancellationToken);
-			return Result.Success();
-		}
+		//public async Task<Result> ToggleFollowerAndFollowing(string userName, CancellationToken cancellationToken = default)
+		//{
+		//	if (userName is null)
+		//		return Result.Failure<PrivacyResponse>(UserErrors.UserNameNotFound);
+		//	var user = await _userManager.FindByNameAsync(userName);
+		//	if (user is null)
+		//		return Result.Failure(UserErrors.UserNameNotFound);
+		//	user.IsEnableFollowerAndFollowing = !user.IsEnableFollowerAndFollowing;
+		//	await _context.SaveChangesAsync(cancellationToken);
+		//	return Result.Success();
+		//}
 		public async Task<Result> TogglePrivacyTheAccount(string userName, CancellationToken cancellationToken = default)
 		{
 			if (userName is null)
@@ -519,57 +537,57 @@ namespace InstagramProject.Service.Services.Profile
 			return Result.Success();
 		}
 
-		public async Task<Result<IEnumerable<PostResponse>>> GetUserPosts(string userId, CancellationToken cancellationToken = default)
-		{
-			var currentUserId = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
-			if (string.IsNullOrEmpty(currentUserId))
-				return Result.Failure<IEnumerable<PostResponse>>(UserErrors.Unauthorized);
+		//public async Task<Result<IEnumerable<PostResponse>>> GetUserPosts(string userId, CancellationToken cancellationToken = default)
+		//{
+		//	var currentUserId = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+		//	if (string.IsNullOrEmpty(currentUserId))
+		//		return Result.Failure<IEnumerable<PostResponse>>(UserErrors.Unauthorized);
 
-			var user = await _userManager.FindByIdAsync(userId);
-			if (user == null)
-				return Result.Failure<IEnumerable<PostResponse>>(UserErrors.UserNotFound);
+		//	var user = await _userManager.FindByIdAsync(userId);
+		//	if (user == null)
+		//		return Result.Failure<IEnumerable<PostResponse>>(UserErrors.UserNotFound);
 
-			var isOwner = currentUserId == userId;
-			var isFollowing = await _context.UserFollows
-				.AnyAsync(uf => uf.UserId == currentUserId && uf.FollowId == userId, cancellationToken);
+		//	var isOwner = currentUserId == userId;
+		//	var isFollowing = await _context.UserFollows
+		//		.AnyAsync(uf => uf.UserId == currentUserId && uf.FollowId == userId, cancellationToken);
 
-			if (!user.IsEnablePublicOrPrivate || isOwner || isFollowing)
-			{
-				var posts = await _context.posts
-					.AsNoTracking()
-					.Where(p => p.UserId == userId)
-					.OrderByDescending(p => p.Time)
-					.ToListAsync(cancellationToken);
+		//	if (!user.IsEnablePublicOrPrivate || isOwner || isFollowing)
+		//	{
+		//		var posts = await _context.posts
+		//			.AsNoTracking()
+		//			.Where(p => p.UserId == userId)
+		//			.OrderByDescending(p => p.Time)
+		//			.ToListAsync(cancellationToken);
 
-				var response = posts.Select(post =>
-				{
-					var media = new List<PostMedia>();
-					if (!string.IsNullOrEmpty(post.PostMedia))
-					{
+		//		var response = posts.Select(post =>
+		//		{
+		//			var media = new List<PostMedia>();
+		//			if (!string.IsNullOrEmpty(post.PostMedia))
+		//			{
 
-						var mediaObjects = JsonSerializer.Deserialize<List<PostMedia>>(post.PostMedia);
-						if (mediaObjects != null)
-						{
-							media = mediaObjects
-								.Where(m => !string.IsNullOrEmpty(m.MediaUrl) && !string.IsNullOrEmpty(m.MediaType))
-								.Select(m => new PostMedia(m.MediaUrl, m.MediaType))
-								.ToList();
-						}
-					}
+		//				var mediaObjects = JsonSerializer.Deserialize<List<PostMedia>>(post.PostMedia);
+		//				if (mediaObjects != null)
+		//				{
+		//					media = mediaObjects
+		//						.Where(m => !string.IsNullOrEmpty(m.MediaUrl) && !string.IsNullOrEmpty(m.MediaType))
+		//						.Select(m => new PostMedia(m.MediaUrl, m.MediaType))
+		//						.ToList();
+		//				}
+		//			}
 
-					return new PostResponse(
-						post.Id,
-						post.UserId,
-						post.Content,
-						media
-					);
-				}).ToList();
+		//			return new PostResponse(
+		//				post.Id,
+		//				post.UserId,
+		//				post.Content,
+		//				media
+		//			);
+		//		}).ToList();
 
-				return Result.Success<IEnumerable<PostResponse>>(response);
-			}
+		//		return Result.Success<IEnumerable<PostResponse>>(response);
+		//	}
 
-			return Result.Failure<IEnumerable<PostResponse>>(UserErrors.PrivateAccountPostsNotVisible);
-		}
+		//	return Result.Failure<IEnumerable<PostResponse>>(UserErrors.PrivateAccountPostsNotVisible);
+		//}
 
 	}
 }

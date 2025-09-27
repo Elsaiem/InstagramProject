@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace InstagramProject.Core.Contracts.Profile
 {
-    public class AddFollowRequestValidator : AbstractValidator<AddFollowRequest>
+    public class UnFollowRequestValidator : AbstractValidator<UnFollowRequest>
     {
-        public AddFollowRequestValidator()
+        public UnFollowRequestValidator()
         {
             RuleFor(x => x.UserId)
                 .NotEmpty()
