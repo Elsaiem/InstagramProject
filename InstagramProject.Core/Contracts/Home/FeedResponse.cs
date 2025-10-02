@@ -11,9 +11,12 @@ namespace InstagramProject.Core.Contracts.Home
 		int PostId,
 		string userId,
 		string userName,
+		string ProfilePic,
+		string Content,
 		DateTime Time,
 		IEnumerable<string> media,
-		int Likes,
-		int Comments
+		bool IsReacted,
+		int LikesCount,
+		int CommentsCount
 	);
 }

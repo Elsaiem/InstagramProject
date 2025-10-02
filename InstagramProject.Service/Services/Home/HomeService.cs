@@ -34,16 +34,19 @@ namespace InstagramProject.Service.Services.Home
 					.Where(uf => uf.UserId == userId)
 					.Select(uf => uf.FollowId)
 					.Contains(p.UserId))
-				.OrderBy(p => p.Time)
+				   .OrderByDescending(p => p.Time).ThenByDescending(p => p.Id)
 				.AsNoTracking()
 				.Select(p => new FeedResponse(
 					p.Id,
 					p.UserId,
-					p.User.UserName ?? string.Empty,
+					p.User.UserName,
+					p.User.ProfilePic,
+					p.Content,
 					p.Time,
 					string.IsNullOrEmpty(p.PostMedia)
 						? Enumerable.Empty<string>()
 						: ParsePostMediaUrls(p.PostMedia),
+					p.Reactions.Any(r => r.UserId == userId && r.IsReaction),
 					p.Reactions.Count(r => r.IsReaction),
 					p.Comments.Count()
 				));
@@ -64,7 +67,7 @@ namespace InstagramProject.Service.Services.Home
 					u.Id,
 					u.UserName!,
 					u.FullName,
-					u.ProfilePic ?? "https://res.cloudinary.com/dbpstijmp/image/upload/v1751892675/awgq5wbmds1147xvxnld.png"
+					u.ProfilePic
 				))
 				.AsNoTracking()
 				.ToListAsync(cancellationToken);
@@ -98,7 +101,7 @@ namespace InstagramProject.Service.Services.Home
 			var suggestions = suggestedUsers
 				.Join(userDetails, su => su.UserId, ud => ud.Id, (su, ud) => new SuggestionsFollowerResponse(
 					ud.UserName!,
-					ud.ProfilePic ?? "https://res.cloudinary.com/dbpstijmp/image/upload/v1751892675/awgq5wbmds1147xvxnld.png",
+					ud.ProfilePic,
 					su.MutualFriendsCount
 				)).ToList();
 

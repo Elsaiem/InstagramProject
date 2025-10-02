@@ -4,10 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace InstagramProject.Core.Contracts.Profile
+namespace InstagramProject.Core.Contracts.Reaction
 {
-	public record AddFollowRequest
+	public record CreateReactionRequest
 	(
-		string followId
+		int PostId,
+		int? CommentId
 	);
 }

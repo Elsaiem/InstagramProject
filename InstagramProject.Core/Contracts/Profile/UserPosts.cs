@@ -1,4 +1,5 @@
-﻿using System;
+﻿using InstagramProject.Core.Contracts.Post;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,8 +7,8 @@ using System.Threading.Tasks;
 
 namespace InstagramProject.Core.Contracts.Profile
 {
-	public record AddFollowRequest
+	public record UserPosts
 	(
-		string followId
+		IEnumerable<PostResponse> postDetails
 	);
 }

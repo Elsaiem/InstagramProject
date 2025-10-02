@@ -15,8 +15,8 @@ namespace InstagramProject.Core.Contracts.Comment
 		string UserId,
 		string UserName,
 		string? UserProfilePic,
+		bool IsReacted,
 		DateTime Time,
-		int LikesCount,
-		bool IsLikedByUser
+		int LikesCount
 	);
 }
