@@ -14,6 +14,7 @@ namespace InstagramProject.Core.Contracts.Comment
 		int? ParentCommentId,
 		string UserId,
 		string UserName,
+		string ProfilePic,
 		DateTime Time,
 		int RepliesCount = 0
 	);
